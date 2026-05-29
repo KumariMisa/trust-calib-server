@@ -25,5 +25,7 @@ class Settings:
         for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
         if origin.strip()
     ]
+    
+    CORS_ORIGIN_REGEX: str = os.getenv("CORS_ORIGIN_REGEX", r"https://.*\.onrender\.com$")
 
 settings = Settings()

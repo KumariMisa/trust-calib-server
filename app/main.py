@@ -25,6 +25,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=settings.CORS_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,6 +38,14 @@ app.add_middleware(SessionMiddleware)
 app.include_router(auth.router)
 app.include_router(conversation.router)
 app.include_router(chat.router)
+
+@app.get("/", tags=["Utilities"])
+def root_check():
+    return {
+        "status": "online",
+        "message": "Claude AI Clone Backend API is running.",
+        "version": "1.0.0"
+    }
 
 @app.get("/health", tags=["Utilities"])
 def health_check():
