@@ -9,6 +9,17 @@ from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+def get_cookie_settings(request: Request):
+    # Dynamic secure / samesite detection for cross-origin/cross-site cookies
+    is_secure = (
+        request.headers.get("x-forwarded-proto", "").lower() == "https"
+        or request.url.scheme == "https"
+        or settings.SESSION_COOKIE_SECURE
+    )
+    # If the endpoint is HTTPS (secure), we use samesite="none" to support cross-site setups (e.g. frontend on verion.qzz.io and backend on Render)
+    samesite_val = "none" if is_secure else "lax"
+    return is_secure, samesite_val
+
 @router.post("/register", response_model=UserOut)
 def register(user_data: UserRegister, db: Session = Depends(get_db)):
     return AuthService.register_user(
@@ -19,20 +30,21 @@ def register(user_data: UserRegister, db: Session = Depends(get_db)):
     )
 
 @router.post("/login", response_model=UserOut)
-def login(login_data: UserLogin, response: Response, db: Session = Depends(get_db)):
+def login(login_data: UserLogin, response: Response, request: Request, db: Session = Depends(get_db)):
     session = AuthService.login_user(
         db=db,
         username=login_data.username,
         password=login_data.password
     )
     
-    # Set HttpOnly Session Cookie
+    # Set HttpOnly Session Cookie with dynamic cross-site properties
+    is_secure, samesite_val = get_cookie_settings(request)
     response.set_cookie(
         key=settings.SESSION_COOKIE_NAME,
         value=session.id,
         httponly=True,
-        samesite="lax",
-        secure=False,  # Set True in production (HTTPS required)
+        samesite=samesite_val,
+        secure=is_secure,
         max_age=settings.SESSION_EXPIRY_DAYS * 24 * 60 * 60
     )
     
@@ -45,7 +57,13 @@ def logout(response: Response, request: Request, db: Session = Depends(get_db)):
     if session_id:
         AuthService.logout_user(db=db, session_id=session_id)
         
-    response.delete_cookie(settings.SESSION_COOKIE_NAME)
+    is_secure, samesite_val = get_cookie_settings(request)
+    response.delete_cookie(
+        key=settings.SESSION_COOKIE_NAME,
+        httponly=True,
+        samesite=samesite_val,
+        secure=is_secure
+    )
     return {"message": "Logged out successfully"}
 
 @router.get("/me", response_model=UserOut)

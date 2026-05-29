@@ -15,6 +15,7 @@ class Settings:
     # Security & Session Session Cookies
     SESSION_COOKIE_NAME: str = os.getenv("SESSION_COOKIE_NAME", "session_id")
     SESSION_EXPIRY_DAYS: int = int(os.getenv("SESSION_EXPIRY_DAYS", "30"))
+    SESSION_COOKIE_SECURE: bool = os.getenv("SESSION_COOKIE_SECURE", "False").lower() in ("true", "1", "yes")
     
     # LLM Settings
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
