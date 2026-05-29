@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - DATABASE_URL=sqlite:///./claude_clone.db
+      - SESSION_COOKIE_NAME=session_id
+      - SESSION_EXPIRY_DAYS=30
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+    volumes:
+      - db_data:/app
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../Frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: ./Scheduler
+      dockerfile: Dockerfile
+    environment:
+      - BACKEND_URLS_RAW=http://backend:8000/health
+      - PING_INTERVAL_MIN=1
+      - PING_INTERVAL_MAX=2
+      - REQUEST_TIMEOUT_SEC=5
+      - MAX_RETRIES=2
+      - BACKOFF_FACTOR=1.5
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  db_data:

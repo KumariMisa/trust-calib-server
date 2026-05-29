@@ -25,3 +25,8 @@ test_sse_endpoint.py
 test_parser.py
 list_models.py
 debug_api.py
+
+# Scheduler lock and env files
+keep_warm.lock
+Scheduler/keep_warm.lock
+Scheduler/.env

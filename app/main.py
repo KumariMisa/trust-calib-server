@@ -1,9 +1,14 @@
+import time
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.middleware.session import SessionMiddleware
 from app.api import auth, conversation, chat
+
+# Track server start time
+START_TIME = time.time()
 
 # Initialize database tables
 Base.metadata.create_all(bind=engine)
@@ -37,6 +42,7 @@ app.include_router(chat.router)
 def health_check():
     return {
         "status": "healthy",
-        "project": settings.PROJECT_NAME,
-        "database": "SQLite (WAL mode enabled)"
+        "uptime": round(time.time() - START_TIME, 2),
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "version": "1.0.0"
     }
