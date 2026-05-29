@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database files (SQLite)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite3
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables configuration
+.env
+
+# Local unit test / debug scratch files
+test_stream.py
+test_multiturn.py
+test_sse_endpoint.py
+test_parser.py
+list_models.py
+debug_api.py
